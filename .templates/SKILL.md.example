@@ -1,16 +1,41 @@
 ---
 name: example-skill
-description: 한 줄 설명 — 언제 이 스킬을 써야 하는지.
+description: "Use when <trigger>. Explain what task or workflow this skill helps with."
+version: 1.0.0
+author: <Mark/Judy/Aizen> (for Agentree)
+license: MIT
+platforms: [windows, macos]
+metadata:
+  hermes:
+    tags: [agentree, shared-skill]
+    related_skills: []
 ---
 
 # Example Skill
 
-## 언제 쓰나
-...
+## Overview
 
-## 절차
+What this skill does and why it exists.
+
+## When to Use
+
+Use when:
+- ...
+
+Do not use when:
+- ...
+
+## Procedure
+
 1. ...
 2. ...
 
-## 주의점
-- ...
+## Common Pitfalls
+
+1. ...
+
+## Verification Checklist
+
+- [ ] File exists on disk.
+- [ ] Frontmatter starts at byte 0 with `---`.
+- [ ] No secrets or personal credentials are committed.
