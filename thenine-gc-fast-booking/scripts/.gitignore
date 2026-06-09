@@ -1,0 +1,5 @@
+node_modules/
+.chrome-profile/
+.cdp-chrome-profile/
+out/
+*.log

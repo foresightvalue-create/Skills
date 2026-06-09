@@ -1,0 +1,21 @@
+{
+  "name": "thenine-gc-fast-booking",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fast visible Playwright automation helper for The Nine GC booking demos. Safe by default: never clicks final reservation confirmation.",
+  "type": "module",
+  "scripts": {
+    "doctor": "node thenine-fast-booking.mjs doctor",
+    "login": "node thenine-fast-booking.mjs login",
+    "plan": "node thenine-fast-booking.mjs plan",
+    "dry-run": "node thenine-fast-booking.mjs dry-run",
+    "cdp-start": "node thenine-fast-booking.mjs cdp-start",
+    "cdp-doctor": "node thenine-fast-booking.mjs cdp-doctor",
+    "cdp-dry-run": "node thenine-fast-booking.mjs cdp-dry-run",
+    "cdp-show": "node thenine-fast-booking.mjs cdp-show"
+  },
+  "dependencies": {
+    "playwright": "^1.57.0",
+    "yaml": "^2.8.2"
+  }
+}
