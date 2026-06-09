@@ -223,8 +223,9 @@ I reached the final reservation confirmation boundary. The next button appears t
 3. **Stopping at login after the user expected end-to-end progress.** Login is a checkpoint; continue after login if authorized.
 4. **Saving private values into skills.** Skills must contain procedures only.
 5. **Claiming popups are closed from stale screenshots.** Recapture the current visible screen.
-6. **Moving too slowly.** Use practical speed; slow down only at safety boundaries.
-7. **Clicking final booking/payment without scoped approval.** Even a true agent respects irreversible-action boundaries.
+6. **Using stale coordinates after scrolling.** Calendar/date and reservation-button Y coordinates can shift when the page scroll position changes. Before a decisive click, recapture the current screen and use coordinates from that exact visible state, not from an earlier screenshot.
+7. **Moving too slowly.** Use practical speed; slow down only at safety boundaries.
+8. **Clicking final booking/payment without scoped approval.** Even a true agent respects irreversible-action boundaries.
 
 ## Verification Checklist
 
