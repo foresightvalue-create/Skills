@@ -104,6 +104,29 @@ git pull
 - 자동 설치보다 **제안 → 검토 → 현지화 → 디스크 검증**을 우선.
 - 충돌 나면 pull/rebase 후 공통 절차와 OS별 차이를 병합.
 
+## 네이밍 규칙 (제안 — 합의 후 확정)
+
+폴더명이 `agentree-` / `hermes-` / `thenine-` / 무접두사로 섞여 있어, 다음 스코프 접두사 체계를 제안합니다. **기존 폴더 즉시 rename은 참조 깨짐 위험이 있어 하지 않고, 신규 스킬부터 적용 + 기존은 합의되면 일괄 정리합니다.**
+
+형식: `<scope>-<skill-name>` (전부 kebab-case)
+
+| scope | 의미 | 예 |
+|---|---|---|
+| `core-` | 플랫폼·서비스 무관 범용 역량 | `self-evolving-skills` → `core-self-evolving-skills` |
+| `hermes-` | Hermes 자체(권한·설정·게이트웨이) | `hermes-write-permission-recovery` |
+| `agentree-` | 팀 공통 운영·에이전트 원칙·협업 절차 | `agentree-shared-skill-exchange` |
+| `<service>-` | 특정 외부 서비스 종속 | `thenine-golf-booking-demo` |
+
+## 중복 방지
+
+같은 주제의 스킬이 둘로 갈라지면 받는 쪽이 어느 걸 써야 할지 혼란스럽습니다.
+
+- 새 스킬 올리기 전, 기존 폴더 목록에서 같은 주제가 있는지 먼저 확인합니다.
+- 겹치면 새로 만들지 말고 기존 스킬에 덧대거나(Update Log), 역할 경계를 frontmatter `description`에 명시합니다.
+- **현재 확인된 중복 후보 (만든 사람이 교통정리 필요):**
+  - `self-evolving-skills` ↔ `agentree-self-improving-agent-principles` — 둘 다 자기진화 루프 주제. 통합할지, "루프 절차" vs "원칙 선언"으로 역할을 나눌지 합의 필요.
+- rename·통합·삭제처럼 남의 참조를 깰 수 있는 변경은 단독 실행하지 않고 이 README의 PR로 제안 → 합의 후 반영합니다.
+
 ## 첫 공유 스킬
 
 - `hermes-write-permission-recovery` — 게이트웨이 세션 쓰기 권한/approval 복구
