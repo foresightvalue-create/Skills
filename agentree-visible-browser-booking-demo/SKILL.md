@@ -160,6 +160,7 @@ For golf tee-time demos:
 9. Go to the final review screen.
 10. Stop before `예약하기`, `결제`, `확정`, `제출`, or equivalent unless the user explicitly approves that final action.
 11. After final approval, click only the scoped final action and report real confirmation evidence.
+12. After booking completion, check whether the site has a separate `동반자입력` / companion-entry step. Do not assume party-size or companion details were fully recorded unless the confirmation page shows them or the user provides the required companion information.
 
 ## Credential and PII Rules
 
