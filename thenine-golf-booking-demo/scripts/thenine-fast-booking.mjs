@@ -181,11 +181,18 @@ async function cdpShow(args) {
     return { method: 'not_found', date: `${yyyy}-${mm}-${dd}` };
   }, { yyyy, mm, dd });
   await page.bringToFront();
+  // Date_Click can trigger a full page navigation. At high speed (stepMs <= 100),
+  // extracting rows immediately races the navigation and can destroy the JS context.
+  await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(stepMs);
 
   // Visible transition 4: scroll to course/time section, choose the best row,
   // click that row's non-final `예약` button, then stop at 03. 예약확인.
-  const extraction = await page.evaluate(({ prefer, maxOverMin }) => {
+  let extraction = null;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      extraction = await page.evaluate(({ prefer, maxOverMin }) => {
     const rows = Array.from(document.querySelectorAll('tr')).map((tr, i) => ({
       i,
       el: tr,
@@ -232,7 +239,15 @@ async function cdpShow(args) {
       marker?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     return { parsed, holes18, selectionRule, candidates, best, rowReserveClick };
-  }, { prefer, maxOverMin });
+      }, { prefer, maxOverMin });
+      break;
+    } catch (err) {
+      if (!/Execution context was destroyed|navigation/i.test(String(err)) || attempt === 5) throw err;
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(Math.max(stepMs, 250));
+    }
+  }
   await page.waitForTimeout(stepMs * 2);
 
   const confirmInfo = await page.evaluate(() => {

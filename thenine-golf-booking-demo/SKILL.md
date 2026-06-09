@@ -291,6 +291,7 @@ npm run cdp-show -- --date YYYY-MM-DD --holes 18 --prefer latest-within-min-plus
 - 2026-06-10: 승인 대기 중 사용자가 날짜를 바꾸는 반복 흐름을 반영. 이전 날짜의 pending approval을 명시적으로 폐기하고 새 날짜로 재조회하며, `confirmInfo.has03`가 false일 때는 승인 질문을 생성하지 않는 규칙을 추가.
 - 2026-06-09: 실제 브라우저 재실행에서 현재 팝업 제목 일부가 기존 기록과 달라질 수 있음을 확인. 팝업 제목은 운영 공지에 따라 변동되므로 고정 목록보다 “5개 팝업 빠른 정리” 절차를 우선하고, BOOKING 이후 로그인 페이지 도달 상태를 예약 완료처럼 표현하지 않도록 보완.
 - 2026-06-09: 듀얼 모니터/확장 모니터 환경에서 Chrome이 대표님 watched monitor에 보이지 않았던 시행착오를 반영. Chrome 프로세스 존재와 사용자 가시성을 구분하고, 한 동작씩 화면에서 관찰되게 진행하도록 보완.
+- 2026-06-10: `--step-ms 100` 초고속 날짜 변경에서 `Date_Click` 직후 페이지 네비게이션과 시간표 추출이 충돌해 `Execution context was destroyed`가 발생함을 확인. 날짜 변경 후 load-state 대기와 extraction retry를 넣어 초고속 모드에서도 `03. 예약확인`까지 안정 도달하도록 보완.
 
 ## Common Pitfalls
 
@@ -309,6 +310,7 @@ npm run cdp-show -- --date YYYY-MM-DD --holes 18 --prefer latest-within-min-plus
 13. **사용자가 stop/멈춤을 말했는데 계속 조작하기.** 사용자가 “stop”, “멈춰 있어”, “안 보여”, “예약하지마”, “나중에 다시 지시할게”라고 하면 즉시 클릭/입력을 멈추고 현재 보이는 화면 상태만 보고한다.
 14. **날짜 변경 때 전체 플로우를 다시 타기.** 이미 예약 화면에 있고 `Date_Click` 함수가 살아 있으면 날짜만 바꾸면 된다. 홈 → 팝업 → BOOKING을 반복하면 느리고 대표님이 답답해한다.
 15. **진행 중 설명이 실행 속도를 늦추기.** 대표님은 실행 중 장황한 설명보다 빠른 처리를 원할 수 있다. 안전 경계와 최종 승인 질문 외에는 설명을 최소화한다.
+16. **초고속 날짜 변경 직후 행 추출이 navigation race를 일으키기.** `--step-ms 100`처럼 빠른 조건에서 `Date_Click` 직후 곧바로 `page.evaluate`로 시간표를 읽으면 `Execution context was destroyed`가 날 수 있다. 날짜 변경 후 `domcontentloaded`/`networkidle` 대기와 extraction retry를 넣어야 한다.
 
 ## Verification Checklist
 
