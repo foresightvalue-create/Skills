@@ -3,13 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const HOME = os.homedir();
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(process.env.THENINE_ROOT || SCRIPT_DIR);
+const ROOT = path.resolve(HOME, 'Agentree', 'booking-automation', 'thenine-gc');
 const PROFILE_DIR = path.resolve(ROOT, '.chrome-profile');
 const CDP_PROFILE_DIR = path.resolve(ROOT, '.cdp-chrome-profile');
 const OUT_DIR = path.resolve(ROOT, 'out');
@@ -150,6 +148,8 @@ async function cdpShow(args) {
   const date = args.date || '2026-06-15';
   const [yyyy, mm, dd] = date.split('-');
   const stepMs = Number(args.stepMs || args['step-ms'] || 700);
+  const prefer = args.prefer || 'cheapest-latest';
+  const maxOverMin = Number(args.maxOverMin || args['max-over-min'] || 0);
   const { browser, page } = await connectCdp();
   await page.bringToFront();
   await page.evaluate(() => { try { window.focus(); } catch {} });
@@ -185,7 +185,7 @@ async function cdpShow(args) {
 
   // Visible transition 4: scroll to course/time section, choose the best row,
   // click that row's non-final `예약` button, then stop at 03. 예약확인.
-  const extraction = await page.evaluate(() => {
+  const extraction = await page.evaluate(({ prefer, maxOverMin }) => {
     const rows = Array.from(document.querySelectorAll('tr')).map((tr, i) => ({
       i,
       el: tr,
@@ -207,7 +207,10 @@ async function cdpShow(args) {
     }
     const holes18 = parsed.filter(x => /18홀/.test(x.section));
     const minPrice = Math.min(...holes18.map(x => x.price));
-    const best = holes18.filter(x => x.price === minPrice).sort((a, b) => a.time.localeCompare(b.time)).at(-1) || null;
+    const maxAllowed = prefer === 'latest-within-min-plus' ? minPrice + Number(maxOverMin || 0) : minPrice;
+    const candidates = holes18.filter(x => x.price <= maxAllowed).sort((a, b) => a.time.localeCompare(b.time));
+    const best = candidates.at(-1) || null;
+    const selectionRule = { prefer, minPrice, maxOverMin: Number(maxOverMin || 0), maxAllowed, candidateCount: candidates.length };
     let rowReserveClick = { clicked: false, reason: 'best row not found' };
     if (best) {
       const tr = rows.find(r => r.i === best.rowIndex)?.el;
@@ -228,8 +231,8 @@ async function cdpShow(args) {
       const marker = Array.from(document.querySelectorAll('*')).find(e => /02\. 코스 및 시간 선택/.test(e.innerText || ''));
       marker?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    return { parsed, holes18, best, rowReserveClick };
-  });
+    return { parsed, holes18, selectionRule, candidates, best, rowReserveClick };
+  }, { prefer, maxOverMin });
   await page.waitForTimeout(stepMs * 2);
 
   const confirmInfo = await page.evaluate(() => {
@@ -249,17 +252,19 @@ async function cdpShow(args) {
   });
   await page.waitForTimeout(stepMs);
 
-  const requested = { date, holes: args.holes || '18', prefer: args.prefer || 'cheapest-latest' };
+  const requested = { date, holes: args.holes || '18', prefer, maxOverMin: prefer === 'latest-within-min-plus' ? maxOverMin : null };
   const approvalMessageKo = buildApprovalMessageKo({ requested, best: extraction.best, confirmInfo });
 
   console.log(JSON.stringify({
-    status: 'cdp_show_complete_awaiting_user_approval',
-    mode: 'visible_browser_changes_without_mouse_to_03_confirmation_then_approval_prompt',
+    status: confirmInfo.has03 ? 'cdp_show_complete_awaiting_user_approval' : 'cdp_show_blocked_before_confirmation',
+    mode: confirmInfo.has03 ? 'visible_browser_changes_without_mouse_to_03_confirmation_then_approval_prompt' : 'visible_browser_blocked_before_03_confirmation',
     endpoint: CDP_ENDPOINT,
     nav,
     dateResult,
     requested,
     best: extraction.best,
+    selectionRule: extraction.selectionRule,
+    candidates: extraction.candidates?.map(x => ({ section: x.section, time: x.time, priceText: x.priceText, price: x.price })).slice(0, 50),
     rowReserveClick: extraction.rowReserveClick,
     confirmInfo,
     approval: {
@@ -277,6 +282,19 @@ async function cdpShow(args) {
 }
 
 function buildApprovalMessageKo({ requested, best, confirmInfo }) {
+  if (!confirmInfo?.has03) {
+    return [
+      '대표님, 더나인GC 예약확인 단계에 아직 도달하지 못했습니다.',
+      '',
+      '진행 요청 내역',
+      `- 예약일자: ${requested.date}`,
+      `- 기준: ${requested.holes}홀`,
+      `- 선택 기준: ${requested.prefer}`,
+      '',
+      '현재는 로그인 또는 예약 가능 시간표 확인 단계에서 막힌 상태입니다.',
+      '최종 예약하기 버튼은 누르지 않았습니다.'
+    ].join('\n');
+  }
   const lines = [
     '대표님, 더나인GC 예약확인 단계까지 도달했습니다.',
     '',
