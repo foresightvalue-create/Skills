@@ -36,16 +36,20 @@ agentree-shared-skill-exchange/
 
 ## 각 머신 셋업 (최초 1회)
 
-Hermes 스킬 폴더 아래에 `shared` 카테고리로 클론합니다.
+공유 스킬 설치는 두 가지 방식 중 하나를 사용합니다.
 
-### macOS / Linux
+### A. 직접 clone 방식
+
+Hermes 스킬 폴더 아래에 `shared` 카테고리로 이 repo를 직접 클론합니다.
+
+macOS / Linux:
 
 ```bash
 cd ~/.hermes/skills
 git clone https://github.com/foresightvalue-create/Skills.git shared
 ```
 
-### Windows Mark (Git Bash/MSYS)
+Windows Mark (Git Bash/MSYS):
 
 ```bash
 cd "$HOME/AppData/Local/hermes/skills"
@@ -57,6 +61,24 @@ git clone https://github.com/foresightvalue-create/Skills.git shared
 ```text
 ~/.hermes/skills/shared/<skill-name>/SKILL.md
 ```
+
+### B. 작업 repo + 동기화 방식
+
+Windows Mark처럼 로컬 실험/커밋과 Hermes 로드 경로를 분리하고 싶으면 작업용 clone을 따로 둡니다.
+
+```bash
+mkdir -p ~/Agentree
+git clone https://github.com/foresightvalue-create/Skills.git ~/Agentree/Skills
+mkdir -p "$HOME/AppData/Local/hermes/skills/shared"
+```
+
+검증된 스킬만 Hermes shared 경로로 복사합니다.
+
+```bash
+cp -R ~/Agentree/Skills/<skill-name> "$HOME/AppData/Local/hermes/skills/shared/"
+```
+
+이 방식은 repo 작업물과 Hermes 설치물을 분리할 수 있어 cron/pull sync, 충돌 처리, 로컬 현지화에 안전합니다.
 
 현재 세션의 스킬 로더는 캐시될 수 있으므로, 새로 받은 스킬은 새 세션 또는 `/reset` 후 인식됩니다. 설치 검증은 `skill_view`가 아니라 디스크에서 합니다.
 
