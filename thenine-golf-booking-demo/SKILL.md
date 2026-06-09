@@ -210,6 +210,37 @@ metadata:
 4. “현재 로그인 단계입니다. 실제 예약 가능 시간 확인은 로그인 후 가능합니다.”
 5. “예약하기 버튼 직전입니다. 먼저 예약현황을 보여드리고, 대표님 승인 후에만 예약하기 버튼을 누르겠습니다.”
 
+## Fast CDP Automation Mode
+
+반복 시연이나 실제 업무 자동화에서는 느린 마우스 애니메이션 대신 `scripts/thenine-fast-booking.mjs`의 Playwright/CDP 모드를 사용한다.
+
+실행 위치:
+
+```bash
+cd thenine-golf-booking-demo/scripts
+npm install
+npm run doctor
+npm run cdp-start
+npm run cdp-doctor
+npm run cdp-show -- --date YYYY-MM-DD --holes 18 --prefer cheapest-latest --step-ms 700
+```
+
+주요 모드:
+
+- `cdp-start`: 실제 Chrome을 remote debugging 포트로 실행한다.
+- `cdp-doctor`: CDP 연결과 탭 상태를 확인한다.
+- `cdp-dry-run`: CDP Chrome에 연결해 빠르게 예약 페이지 신호를 확인한다.
+- `cdp-show`: 보이는 Chrome에서 BOOKING 이동 → 날짜 선택 → 조건에 맞는 티타임 행 선택 → 행의 `예약` 버튼 클릭 → `03. 예약확인` 화면 표시까지 진행한다.
+
+`cdp-show` 안전선:
+
+1. 시간표 행의 `예약` 버튼은 `03. 예약확인`을 표시하기 위한 선택 단계이므로 클릭할 수 있다.
+2. `03. 예약확인` 아래의 최종 `예약하기` 버튼은 실제 확정 단계이므로 클릭하지 않는다.
+3. `03. 예약확인` 화면은 개인정보가 포함될 수 있으므로 스크린샷/HTML 저장을 하지 않는다.
+4. 콘솔/메시지 요약에서 성명/연락처는 `[redacted]`로 마스킹한다.
+5. Slack/Telegram에 보낼 `approval.messageKo`를 생성하고, 마지막에 반드시 묻는다: “이 내역으로 예약을 확정할까요?”
+6. 사용자가 명시적으로 `예약 확정`이라고 답한 뒤에만 최종 `예약하기`를 수행한다.
+
 ## Update Log
 
 이 스킬은 더나인GC 골프예약 시연 전까지 계속 업데이트한다.
@@ -217,6 +248,7 @@ metadata:
 - 2026-06-09: 초기 스킬 생성. 더나인GC 공식 사이트, Naver 우선 검색, 팝업 정리, BOOKING → 로그인 흐름, 8배속 이상 시연 속도, 최종 예약 안전선 반영.
 - 2026-06-09: 예약 안전선을 구체화. 예약하기 버튼 직전에 예약현황을 대표님께 보여주고 “예약하기 버튼 눌러도 될까요?”라고 확인한 뒤, 명시 승인 시에만 예약 확정하도록 보완.
 - 2026-06-09: 처음부터 재시도하며 점검. Naver 장소 카드에 예약 티타임이 노출되지만 3명 기본 시나리오와 다르게 `4인 필수`가 보일 수 있음을 추가. 공식 사이트 팝업 5개, 팝업 본문 오클릭 시 공지 상세 이동 위험, `오늘 하루 동안 보이지 않기` 사전 처리 옵션, 로그인 리다이렉트 URL과 입력 필드 정보를 반영.
+- 2026-06-09: `thenine-gc-fast-booking` 중복 스킬 내용을 기존 `thenine-golf-booking-demo` 폴더로 통합. Playwright/CDP 고속 자동화 스크립트, `03. 예약확인` 도달, Slack/Telegram 승인 질문 메시지 생성, 최종 `예약하기` 전 명시 승인 규칙을 반영.
 
 ## Common Pitfalls
 
